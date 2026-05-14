@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TECH ION — Commission Platform</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- ══ PRINT FRAME (PDF export) ══ -->
+<div id="print-frame"></div>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <img src="https://i0.wp.com/techion.co.th/wp-content/uploads/2024/09/techion_mini_logo.png?resize=277%2C318&ssl=1"
+           alt="TECH ION" style="height:52px;object-fit:contain;">
+      <div>
+        <div class="login-brand-name">TECH ION</div>
+        <div class="login-brand-sub">Commission Management Platform</div>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h2 class="login-title">Sign in</h2>
+      <p class="login-subtitle">Enter your credentials to access the platform</p>
+
+      <div id="login-error" class="alert alert-danger" style="display:none;">
+        ❌ Incorrect username or password
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input id="login-user" type="text" placeholder="Enter username" autocomplete="username"
+               onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div style="position:relative;">
+          <input id="login-pass" type="password" placeholder="Enter password"
+                 autocomplete="current-password" style="padding-right:44px;"
+                 onkeydown="if(event.key==='Enter')doLogin()">
+          <button type="button" onclick="toggleLoginPass()"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" id="login-eye">👁</button>
+        </div>
+      </div>
+
+      <button id="login-btn" class="btn btn-primary btn-full" onclick="doLogin()">Sign In →</button>
+
+    </div>
+
+    <div class="login-footer">© 2026 TECH ION Co., Ltd.</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none;">
+
+  <header class="header">
+    <div class="header-left">
+      <img src="https://i0.wp.com/techion.co.th/wp-content/uploads/2024/09/techion_mini_logo.png?resize=277%2C318&ssl=1"
+           alt="TECH ION" style="height:38px;object-fit:contain;">
+      <div>
+        <div class="header-brand">TECH ION</div>
+        <div class="header-sub">Commission Management Platform</div>
+      </div>
+    </div>
+    <div class="header-center">
+      <select id="header-emp-select" onchange="updateHeaderBadge()" class="header-emp-select"></select>
+    </div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="header-avatar" id="header-avatar">A</div>
+        <div>
+          <div class="header-name" id="header-name">Administrator</div>
+          <div class="header-role" id="header-role">Admin</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <nav class="nav-bar">
+    <div class="nav-tab active" onclick="showSection('dashboard')">📊 Dashboard</div>
+    <div class="nav-tab" onclick="showSection('deals')">📋 Deals</div>
+    <div class="nav-tab" id="nav-add-deal" onclick="showSection('add-deal')">➕ Add Deal</div>
+    <div class="nav-tab" onclick="showSection('employees')">👤 Employees</div>
+    <div class="nav-tab" onclick="showSection('rate-table')">📐 Commission Rules</div>
+    <div class="nav-tab" onclick="showSection('reports')">📄 Reports</div>
+    <div class="nav-tab" id="nav-users" onclick="showSection('users')" style="display:none;">👥 Users</div>
+    <div class="nav-tab" id="nav-settings" onclick="showSection('settings')">⚙ Settings</div>
+  </nav>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+      <div class="section-heading"><h2>Dashboard</h2><p>Commission overview</p></div>
+      <div class="filter-row">
+        <select id="dash-month" onchange="renderDashboard()"><option value="ALL">All Months</option></select>
+        <select id="dash-emp" onchange="renderDashboard();updateHeaderBadge()"><option value="ALL">All Employees</option></select>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-label">Total Sales</div><div class="stat-value mono" id="stat-sales">฿0</div><div class="stat-sub" id="stat-count">0 deals</div></div>
+        <div class="stat-card green"><div class="stat-label">Total Commission</div><div class="stat-value mono" id="stat-comm">฿0</div><div class="stat-sub" id="stat-margin">0% avg margin</div></div>
+        <div class="stat-card purple"><div class="stat-label">Annual Target</div><div class="stat-value mono" id="stat-target">฿40,000,000</div><div class="stat-sub" id="stat-target-sub">Individual target</div></div>
+        <div class="stat-card orange"><div class="stat-label">Target Achievement</div><div class="stat-value mono" id="stat-achieve">0%</div><div class="stat-sub" id="stat-achieve-sub">of annual target</div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="prog-label">Target Progress</span><span id="prog-pct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Recent Deals</div></div>
+          <button class="btn btn-outline btn-sm" onclick="showSection('deals')">View All →</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Project</th><th>Customer</th><th>Month</th><th class="text-right">Sale Price</th><th class="text-right">Margin %</th><th class="text-right">Commission</th></tr></thead>
+          <tbody id="dash-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- DEALS -->
+    <div class="section" id="section-deals">
+      <div class="section-heading">
+        <div><h2>Deals</h2><p>All commission deals</p></div>
+        <button class="btn btn-primary btn-sm" id="btn-add-deal" onclick="showSection('add-deal')">+ Add Deal</button>
+      </div>
+      <div class="filter-row">
+        <select id="deals-month" onchange="renderDeals()"><option value="ALL">All Months</option></select>
+        <select id="deals-emp" onchange="renderDeals()"><option value="ALL">All Employees</option></select>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Project</th><th>Customer</th><th>Receipt</th><th>Date</th><th>Employee</th><th class="text-right">Sale Price</th><th class="text-right">Margin %</th><th class="text-right">Commission</th><th class="text-center">Actions</th></tr></thead>
+          <tbody id="deals-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ADD / EDIT DEAL -->
+    <div class="section" id="section-add-deal">
+      <div class="section-heading"><h2 id="deal-form-title">Add Deal</h2><p>Enter deal details</p></div>
+      <div class="card">
+        <div class="card-body">
+          <input type="hidden" id="f-id">
+          <div class="form-grid">
+            <div class="form-group"><label>Employee *</label><select id="f-emp"></select></div>
+            <div class="form-group"><label>Month *</label>
+              <select id="f-month">
+                <option>January</option><option>February</option><option>March</option>
+                <option>April</option><option>May</option><option>June</option>
+                <option>July</option><option>August</option><option>September</option>
+                <option>October</option><option>November</option><option>December</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Project Name *</label><input type="text" id="f-project" placeholder="e.g. Elastic Enterprise License"></div>
+            <div class="form-group"><label>Customer</label><input type="text" id="f-customer" placeholder="e.g. YIP IN SOI"></div>
+            <div class="form-group"><label>Receipt No.</label><input type="text" id="f-receipt" placeholder="e.g. BI-260300001"></div>
+            <div class="form-group"><label>Date</label><input type="date" id="f-date"></div>
+            <div class="form-group"><label>Sale Price (฿) *</label><input type="number" id="f-sale" placeholder="0" min="0" step="0.01" oninput="calcPreview()"></div>
+            <div class="form-group"><label>GP / Gross Profit (฿) *</label><input type="number" id="f-gp" placeholder="0" min="0" step="0.01" oninput="calcPreview()"></div>
+            <div class="form-group"><label>Margin % *</label><input type="number" id="f-margin" placeholder="0.00" min="0" step="0.01" oninput="calcPreview()"></div>
+            <div class="form-group"><label>Commission Preview</label>
+              <div class="comm-preview" id="comm-preview">—</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;">
+            <button class="btn btn-primary" onclick="saveDeal()">💾 Save Deal</button>
+            <button class="btn btn-outline" onclick="showSection('deals')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES -->
+    <div class="section" id="section-employees">
+      <div class="section-heading">
+        <div><h2>Employees</h2><p>Manage salespersons and individual targets</p></div>
+        <button class="btn btn-primary btn-sm" id="btn-add-emp" onclick="openAddEmpForm()">+ Add Employee</button>
+      </div>
+      <div class="card" id="emp-form-card" style="display:none;margin-bottom:20px;">
+        <div class="card-header"><div class="card-title" id="emp-form-title">Add Employee</div></div>
+        <div class="card-body">
+          <input type="hidden" id="ef-id">
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="ef-name" placeholder="e.g. Sales Team"></div>
+            <div class="form-group"><label>Annual Target (฿)</label><input type="number" id="ef-target" placeholder="40000000" min="0"></div>
+            <div class="form-group"><label>Badge Color</label><input type="color" id="ef-color" value="#1a56db" style="height:40px;width:80px;padding:2px;border-radius:6px;cursor:pointer;"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="saveEmployee()">💾 Save</button>
+            <button class="btn btn-outline" onclick="closeEmpForm()">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Name</th><th class="text-right">Annual Target (฿)</th><th class="text-right">Total Sales</th><th class="text-right">Commission</th><th class="text-center">Actions</th></tr></thead>
+          <tbody id="emp-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- COMMISSION RULES -->
+    <div class="section" id="section-rate-table">
+      <div class="section-heading"><h2>Commission Rules</h2><p>Rate calculation by margin</p></div>
+      <div class="card">
+        <div class="card-body">
+          <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">
+            Commission rate = Margin %, capped at <strong id="rt-maxrate">10%</strong>.<br>
+            Deals below <strong id="rt-minmargin">3%</strong> margin earn <strong>0%</strong> commission.
+          </p>
+          <div class="table-wrap" id="rate-table-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="section" id="section-reports">
+      <div class="section-heading"><h2>Reports</h2><p>Monthly commission report</p></div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Employee</label><select id="rpt-emp"></select></div>
+            <div class="form-group"><label>Month</label>
+              <select id="rpt-month">
+                <option value="ALL">All Months (Full Year)</option>
+                <option>January</option><option>February</option><option>March</option>
+                <option>April</option><option>May</option><option>June</option>
+                <option>July</option><option>August</option><option>September</option>
+                <option>October</option><option>November</option><option>December</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Year</label>
+              <select id="rpt-year"></select>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="previewReport()">👁 Preview</button>
+            <button class="btn btn-outline" onclick="exportPDF()">📄 Export PDF</button>
+            <button class="btn btn-outline" onclick="exportExcel()">📊 Export Excel</button>
+          </div>
+        </div>
+      </div>
+      <div id="report-preview"></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="section-users">
+      <div class="section-heading"><h2>Users & Roles</h2><p>Manage platform access</p></div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+          <div class="role-grid">
+            <div class="role-card" style="border-color:#ede9fe;background:#faf5ff;">
+              <span class="role-badge" style="background:#7c3aed;">Admin</span>
+              <p>Full access — manage deals, employees, users, settings and generate reports.</p>
+            </div>
+            <div class="role-card" style="border-color:#dbeafe;background:#eff6ff;">
+              <span class="role-badge" style="background:#1a56db;">Manager</span>
+              <p>Manage deals, employees, targets and reports. Cannot access Users or Settings.</p>
+            </div>
+            <div class="role-card" style="border-color:#d1fae5;background:#f0fdf4;">
+              <span class="role-badge" style="background:#059669;">Viewer</span>
+              <p>Read-only — view Dashboard, Deals and Reports only. Cannot add, edit or delete.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div><div class="card-title">Platform Users</div><div class="card-subtitle" id="user-count"></div></div>
+          <button class="btn btn-primary btn-sm" onclick="openUserForm()">+ Add User</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Full Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table></div>
+      </div>
+      <div class="card" id="user-form-card" style="display:none;">
+        <div class="card-header"><div class="card-title" id="user-form-title">Add User</div></div>
+        <div class="card-body">
+          <input type="hidden" id="uf-id">
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="uf-name" placeholder="e.g. Natpaphat Buppha"></div>
+            <div class="form-group"><label>Username *</label><input type="text" id="uf-username" placeholder="e.g. natpaphat" autocomplete="off"></div>
+            <div class="form-group">
+              <label>Password</label>
+              <div style="position:relative;">
+                <input type="password" id="uf-password" placeholder="Enter password" autocomplete="new-password" style="padding-right:40px;">
+                <button type="button" onclick="toggleUFPass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;" id="uf-eye">👁</button>
+              </div>
+              <span class="form-hint" id="uf-pass-hint">Leave blank to keep existing password</span>
+            </div>
+            <div class="form-group"><label>Role</label>
+              <select id="uf-role">
+                <option value="admin">Admin — Full access</option>
+                <option value="manager" selected>Manager — Manage deals & reports</option>
+                <option value="viewer">Viewer — Read only</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="saveUser()">💾 Save User</button>
+            <button class="btn btn-outline" onclick="closeUserForm()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="section-settings">
+      <div class="section-heading"><h2>Settings</h2><p>Platform configuration</p></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="settings-row">
+            <div><div class="settings-label">Default Annual Target for New Employees (฿)</div><div class="settings-desc">Pre-filled when adding a new employee</div></div>
+            <input type="number" id="s-target" value="40000000" style="width:160px;text-align:right;">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Minimum Margin for Commission (%)</div><div class="settings-desc">Deals below this margin earn 0% commission</div></div>
+            <input type="number" id="s-minmargin" value="3" min="0" max="100" step="0.1" style="width:100px;text-align:right;">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Maximum Commission Rate (%)</div><div class="settings-desc">Commission rate is capped at this value</div></div>
+            <input type="number" id="s-maxrate" value="10" min="0" max="100" step="0.1" style="width:100px;text-align:right;">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:16px;">💾 Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+</div><!-- #app -->
+
+<script src="js/app.js"></script>
+</body>
+</html>
